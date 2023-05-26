@@ -1,0 +1,96 @@
+const readline = require('readline');
+
+// Create a readline interface for user input
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+// Define the game state
+let currentRoom = 'entrance';
+let hasKey = false;
+let isGameWon = false;
+
+// Game map
+const rooms = {
+  entrance: {
+    description: 'You are in the entrance hall of a mysterious mansion.',
+    options: [
+      { key: 'l', label: 'Go left', nextRoom: 'library' },
+      { key: 'r', label: 'Go right', nextRoom: 'kitchen' }
+    ]
+  },
+  library: {
+    description: 'You enter a dusty library filled with old books.',
+    options: [
+      { key: 'b', label: 'Search the bookshelves', nextRoom: 'secret_room' },
+      { key: 'r', label: 'Go back to the entrance', nextRoom: 'entrance' }
+    ]
+  },
+  kitchen: {
+    description: 'You find yourself in a dark, abandoned kitchen.',
+    options: [
+      { key: 'd', label: 'Open the drawer', nextRoom: 'treasure_room' },
+      { key: 'l', label: 'Go left to the entrance', nextRoom: 'entrance' }
+    ]
+  },
+  secret_room: {
+    description: 'You discover a secret room with a locked chest.',
+    options: [
+      { key: 'u', label: 'Unlock the chest', nextRoom: 'treasure_room' },
+      { key: 'r', label: 'Go back to the library', nextRoom: 'library' }
+    ]
+  },
+  treasure_room: {
+    description: 'Congratulations! You found the hidden treasure!',
+    options: []
+  }
+};
+
+// Function to display the current room and available options
+function displayRoom() {
+  const room = rooms[currentRoom];
+  console.log(room.description);
+  if (room.options.length > 0) {
+    console.log('What would you like to do?');
+    room.options.forEach(option => {
+      console.log(`[${option.key}] ${option.label}`);
+    });
+  }
+}
+
+// Function to handle user input
+function handleInput(input) {
+  const room = rooms[currentRoom];
+  const selectedOption = room.options.find(option => option.key === input.toLowerCase());
+  
+  if (selectedOption) {
+    currentRoom = selectedOption.nextRoom;
+    if (currentRoom === 'treasure_room') {
+      if (hasKey) {
+        isGameWon = true;
+        console.log('Congratulations! You won the game!');
+        rl.close();
+        return;
+      } else {
+        console.log('The chest is locked! You need to find a key.');
+      }
+    }
+    displayRoom();
+  } else {
+    console.log('Invalid input! Please try again.');
+  }
+}
+
+// Start the game
+console.log('Welcome to the Adventure Game!');
+displayRoom();
+
+// Handle user input
+rl.on('line', input => {
+  handleInput(input);
+  
+  if (isGameWon) {
+    rl.close();
+  }
+});
